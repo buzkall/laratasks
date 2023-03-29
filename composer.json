@@ -12,7 +12,9 @@
         "laravel/tinker": "^2.8"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "*",
         "fakerphp/faker": "^1.9.1",
+        "krlove/eloquent-model-generator": "dev-l10-compatibility",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
@@ -20,6 +22,12 @@
         "phpunit/phpunit": "^10.0",
         "spatie/laravel-ignition": "^2.0"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/laravel-shift/eloquent-model-generator.git"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "App\\": "app/",
