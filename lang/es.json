@@ -1,5 +1,6 @@
 {
   "Tasks": "Tareas",
   "Title": "Título",
-  "Completed at": "Completado el"
+  "Completed at": "Completado el",
+  "Task with id :id": "Tarea con id :id"
 }
