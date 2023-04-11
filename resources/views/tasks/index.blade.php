@@ -4,10 +4,7 @@
     <div class="container mx-auto p-8">
         <div class="flex items-center">
             <div class="flex-auto">
-                <div class="flex justify-between">
-                    <h1 class="text-xl text-gray-500">{{ __('Tasks') }}</h1>
-                    <x-link :target="route('tasks.create')">{{ __('New') }}</x-link>
-                </div>
+                <h1 class="text-xl text-gray-500">{{ __('Tasks') }}</h1>
 
                 <div class="flex-none mt-4">
                     @if(session('message'))
@@ -16,6 +13,8 @@
                             {{ session('message') }}
                         </div>
                     @endif
+
+                    @include('tasks.create')
 
                     <div class="inline-block min-w-full py-2 px-8 align-middle">
                         <table class="min-w-full divide-y divide-gray-300">
@@ -37,7 +36,9 @@
                                     <td class="py-2">
                                         {{ $task->completed_at?->diffForHumans() }}
                                     </td>
-                                    <td class="flex space-x-1">
+                                    <td class="flex justify-end space-x-1">
+                                        @includeWhen(is_null($task->completed_at), 'tasks.complete')
+
                                         <x-link :target="route('tasks.edit', $task)">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                                  stroke="currentColor" class="w-4 h-4">

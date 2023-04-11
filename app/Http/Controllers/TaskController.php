@@ -9,14 +9,9 @@ class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::paginate(config('laratasks.pagination'));
+        $tasks = Task::orderByDesc('id')->paginate(config('laratasks.pagination'));
 
         return view('tasks.index', ['tasks' => $tasks]);
-    }
-
-    public function create()
-    {
-        return view('tasks.create');
     }
 
     public function store(TaskRequest $request)
@@ -38,6 +33,14 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.index')
                          ->with('message', __('Task updated successfully'));
+    }
+
+    public function complete(Task $task)
+    {
+        $task->update(['completed_at' => now()]);
+
+        return redirect()->route('tasks.index')
+                         ->with('message', __('Task completed successfully'));
     }
 
     public function destroy(Task $task)

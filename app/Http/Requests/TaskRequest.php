@@ -17,8 +17,10 @@ class TaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'min:3',
-                Rule::unique('tasks', 'title')->ignore($this->task)]
+            'title' => ['required',
+                        'min:' . config('laratasks.min_title_length'),
+                        'max:255',
+                        Rule::unique('tasks', 'title')->ignore($this->task)]
         ];
     }
 
