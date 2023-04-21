@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\TaskCreated;
 use App\Models\Task;
 
 it('lists all the tasks', function () {
@@ -62,4 +63,41 @@ it('creates a task with title', function () {
 
     $this->assertDatabaseCount('tasks', 1);
     $this->assertDatabaseHas('tasks', ['title' => $title]);
+});
+
+it('deletes a task', function() {
+    $this->assertDatabaseCount('tasks', 0);
+    $task = Task::factory()->create();
+
+    $this->assertDatabaseCount('tasks', 1);
+
+    $this->delete(route('tasks.destroy', $task))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('tasks.index'))
+        ->assertSessionHas('message', __('Task deleted successfully'));
+
+    $this->assertDatabaseCount('tasks', 0);
+});
+
+it('completes a task', function() {
+    $task = Task::factory()->create();
+
+    $this->freezeTime();
+
+    $this->put(route('tasks.complete', $task))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('tasks.index'))
+        ->assertSessionHas('message', __('Task completed successfully'));
+
+    $task->refresh();
+    $this->assertEquals($task->completed_at, now());
+});
+
+it('sends an email after creating a task', function() {
+    Mail::fake();
+    Task::factory()->create();
+
+    Mail::assertSent(TaskCreated::class, function($mail) {
+        return $mail->hasTo('mail@mail.com');
+    });
 });
