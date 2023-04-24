@@ -7,8 +7,6 @@
     <title>{{ $title ?? config('app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body>
     {{ $slot }}

@@ -35,19 +35,11 @@ class TaskController extends Controller
                          ->with('message', __('Task updated successfully'));
     }
 
-    public function complete(Task $task)
-    {
-        $task->update(['completed_at' => now()]);
-
-        return redirect()->route('tasks.index')
-                         ->with('message', __('Task completed successfully'));
-    }
-
     public function destroy(Task $task)
     {
         $task->delete();
 
         return redirect()->route('tasks.index')
-            ->with('message', __('Task deleted successfully'));
+                         ->with('message', __('Task deleted successfully'));
     }
 }

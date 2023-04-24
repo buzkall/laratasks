@@ -30,6 +30,5 @@ class Task extends Model
                     ->send(new TaskCreated($task));
             }
         });
-
     }
 }

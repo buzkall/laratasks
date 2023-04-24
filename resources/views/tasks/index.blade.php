@@ -1,6 +1,20 @@
 <x-layout>
     <x-slot name="title">{{ __('Tasks') }}</x-slot>
 
+    @if (Route::has('login'))
+        <div class="sm:fixed sm:top-0 sm:right-0 p-6 text-right">
+            @auth
+                <a href="{{ url('/dashboard') }}" class="font-semibold text-gray-600 hover:text-gray-200 dark:text-gray-400 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-200 dark:text-gray-400 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Log in</a>
+
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="ml-4 font-semibold text-gray-600 hover:text-gray-200 dark:text-gray-400 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Register</a>
+                @endif
+            @endauth
+        </div>
+    @endif
+
     <div class="container mx-auto p-8">
         <div class="flex items-center">
             <div class="flex-auto">
@@ -13,6 +27,15 @@
                             {{ session('message') }}
                         </div>
                     @endif
+
+                    <div x-data>
+                        <template x-for="item in $store.notifications?.items">
+                            <div class="inline-block min-w-full py-2 px-8 border-indigo-300
+                        bg-indigo-200 rounded-xl">
+                                <p x-text="item"></p>
+                            </div>
+                        </template>
+                    </div>
 
                     @include('tasks.create')
 
