@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TaskRequest;
 use App\Models\Task;
+use App\Models\User;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::orderByDesc('id')->paginate(config('laratasks.pagination'));
+        $tasks = Task::with(['user:id,name', 'tags:id,name'])
+                     ->orderByDesc('id')
+                     ->paginate(config('laratasks.pagination'));
+
 
         return view('tasks.index', ['tasks' => $tasks]);
     }

@@ -45,6 +45,8 @@
                             <tr>
                                 <th class="py-2 px-6 text-left">{{ __('Id') }}</th>
                                 <th class="py-2 px-6 text-left">{{ __('Title') }}</th>
+                                <th class="py-2 px-6 text-left">{{ __('User') }}</th>
+                                <th class="py-2 px-6 text-left">{{ __('Tags') }}</th>
                                 <th class="py-2 px-6 text-left">{{ __('Completed at') }}</th>
                                 <th class="py-2 px-6 text-left">{{ __('Actions') }}</th>
                             </tr>
@@ -56,6 +58,8 @@
                                         {{ $task->id }}
                                     </td>
                                     <td class="py-2">{{ $task->title }}</td>
+                                    <td class="py-2">{{ $task->user->name }}</td>
+                                    <td class="py-2">{{ $task->tags->pluck('name')->implode(', ') }}</td>
                                     <td class="py-2">
                                         {{ $task->completed_at?->diffForHumans() }}
                                     </td>
