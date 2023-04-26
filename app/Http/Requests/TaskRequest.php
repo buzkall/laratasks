@@ -10,7 +10,7 @@ class TaskRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-                         'new_field' => 1
+                         'user_id' => auth()->id()
                      ]);
     }
 
@@ -20,7 +20,8 @@ class TaskRequest extends FormRequest
             'title' => ['required',
                         'min:' . config('laratasks.min_title_length'),
                         'max:255',
-                        Rule::unique('tasks', 'title')->ignore($this->task)]
+                        Rule::unique('tasks', 'title')->ignore($this->task)],
+            'user_id' => ['required', 'exists:users,id']
         ];
     }
 

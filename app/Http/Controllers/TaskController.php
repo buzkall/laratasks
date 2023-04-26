@@ -4,16 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TaskRequest;
 use App\Models\Task;
-use App\Models\User;
 
 class TaskController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Task::class, 'task');
+    }
+
     public function index()
     {
         $tasks = Task::with(['user:id,name', 'tags:id,name'])
+                     ->when(! auth()->user()->isAdmin, fn($query) => $query->whereBelongsTo(auth()->user()))
                      ->orderByDesc('id')
                      ->paginate(config('laratasks.pagination'));
-
 
         return view('tasks.index', ['tasks' => $tasks]);
     }

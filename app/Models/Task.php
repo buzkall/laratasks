@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use App\Mail\TaskCreated;
+use App\Traits\HasTags;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Mail;
 
 class Task extends Model
 {
     use HasFactory;
+    use HasTags;
 
     protected $fillable = ['user_id', 'title', 'completed_at'];
 
@@ -38,10 +39,5 @@ class Task extends Model
     {
         return $this->belongsTo(User::class)
                     ->withDefault(['name' => 'Sin usuario']);
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 }

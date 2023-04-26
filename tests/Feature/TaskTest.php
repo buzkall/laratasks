@@ -2,8 +2,22 @@
 
 use App\Mail\TaskCreated;
 use App\Models\Task;
+use App\Models\User;
 
-it('lists all the tasks', function () {
+beforeEach(function () {
+    $this->admin = User::factory()->hasRoles(['name' => 'admin'])->create();
+    $this->user = User::factory()->create();
+});
+
+test('guest user cannot see tasks', function () {
+    Task::factory(10)->create();
+
+    $this->get(route('tasks.index'))
+         ->assertRedirect(route('login'));
+});
+
+test('admin sees all the tasks', function () {
+    $this->actingAs($this->admin);
     $tasks = Task::factory(10)->create();
 
     $this->get(route('tasks.index'))
@@ -12,7 +26,21 @@ it('lists all the tasks', function () {
          ->assertSee($tasks->first()->title);
 });
 
+test('user sees only his tasks', function () {
+    $this->actingAs($this->user);
+    $taskAdmin = Task::factory()->for($this->admin)->create();
+    $taskUser = Task::factory()->for($this->user)->create();
+
+    $this->get(route('tasks.index'))
+         ->assertStatus(200)
+         ->assertSee(__('Tasks'))
+         ->assertSee($taskUser->title)
+         ->assertDontSee($taskAdmin->title);
+});
+
 it('shows the diff time for a completed task', function () {
+    $this->actingAs($this->admin);
+
     $delay = random_int(1, 59);
     $time = now()->subMinutes($delay);
     Task::factory()->create(['completed_at' => $time]);
@@ -23,6 +51,8 @@ it('shows the diff time for a completed task', function () {
 });
 
 it('throws un error when trying to create a task without title', function () {
+    $this->actingAs($this->admin);
+
     $this->post(route('tasks.store'), ['title' => ''])
          ->assertSessionHasErrors('title')
          ->assertSessionHas('errors', function ($errors) {
@@ -31,6 +61,8 @@ it('throws un error when trying to create a task without title', function () {
 });
 
 it('throws un error when trying to create a task with less than 3 characters title', function () {
+    $this->actingAs($this->admin);
+
     $title = str_repeat('a', config('laratasks.min_title_length') - 1);
     $this->post(route('tasks.store'), ['title' => $title])
          ->assertSessionHasErrors('title')
@@ -41,6 +73,8 @@ it('throws un error when trying to create a task with less than 3 characters tit
 });
 
 it('throws un error when trying to create a task with duplicated title', function () {
+    $this->actingAs($this->admin);
+
     $title = fake()->sentence(3);
     Task::factory()->create(['title' => $title]);
 
@@ -53,6 +87,8 @@ it('throws un error when trying to create a task with duplicated title', functio
 });
 
 it('creates a task with title', function () {
+    $this->actingAs($this->admin);
+
     $this->assertDatabaseEmpty('tasks');
 
     $title = fake()->sentence(3);
@@ -62,42 +98,55 @@ it('creates a task with title', function () {
          ->assertSessionHas('message', __('Task created successfully'));
 
     $this->assertDatabaseCount('tasks', 1);
-    $this->assertDatabaseHas('tasks', ['title' => $title]);
+    $this->assertDatabaseHas('tasks', ['title' => $title,
+                                       'user_id' => $this->admin->id]);
 });
 
-it('deletes a task', function() {
+it('admin deletes a task', function () {
+    $this->actingAs($this->admin);
+
     $this->assertDatabaseCount('tasks', 0);
     $task = Task::factory()->create();
 
     $this->assertDatabaseCount('tasks', 1);
 
     $this->delete(route('tasks.destroy', $task))
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('tasks.index'))
-        ->assertSessionHas('message', __('Task deleted successfully'));
+         ->assertSessionHasNoErrors()
+         ->assertRedirect(route('tasks.index'))
+         ->assertSessionHas('message', __('Task deleted successfully'));
 
     $this->assertDatabaseCount('tasks', 0);
 });
 
-it('completes a task', function() {
+it('user cannot delete a task', function () {
+    $this->actingAs($this->user);
+
     $task = Task::factory()->create();
 
-    $this->freezeTime();
+    $this->delete(route('tasks.destroy', $task))
+         ->assertStatus(403);
+});
 
-    $this->put(route('tasks.complete', $task))
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('tasks.index'))
-        ->assertSessionHas('message', __('Task completed successfully'));
+it('completes a task', function () {
+    $task = Task::factory()->create();
+
+    $this->freezeSecond();
+
+    $this->put(route('api.tasks.complete', $task))
+        ->assertOk()
+        ->assertExactJson([
+            'message' => __('Task completed successfully')
+        ]);
 
     $task->refresh();
     $this->assertEquals($task->completed_at, now());
 });
 
-it('sends an email after creating a task', function() {
+it('sends an email after creating a task', function () {
     Mail::fake();
     Task::factory()->create();
 
-    Mail::assertSent(TaskCreated::class, function($mail) {
+    Mail::assertSent(TaskCreated::class, function ($mail) {
         return $mail->hasTo('mail@mail.com');
     });
 });
