@@ -3,7 +3,10 @@
 
     complete() {
         this.incomplete = false;
-        axios.put('{{ route('api.tasks.complete', $task) }}')
+        axios.put('{{ route('api.tasks.complete', $task) }}',
+                    {},
+                    { headers: { Authorization: `Bearer {{ Cookie::get('auth-token') }}` }}
+        )
         .then(function(response) {
             $store.notifications?.notify(response.data.message);
 

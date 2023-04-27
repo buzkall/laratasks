@@ -8,6 +8,14 @@ use Illuminate\Auth\Access\Response;
 
 class TaskPolicy
 {
+    public function before(User $user): bool|null
+    {
+        if ($user->isAdmin) {
+            return true;
+        }
+        return null;
+    }
+
     /**
      * Determine whether the user can view any models.
      */
@@ -21,7 +29,7 @@ class TaskPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin;
+        return true;
     }
 
     /**
@@ -37,11 +45,11 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task): bool
     {
-        return $user->isAdmin;
+        return false;
     }
 
     public function complete(User $user, Task $task): bool
     {
-        return true;//$task->user->is($user);
+        return $task->user->is($user);
     }
 }

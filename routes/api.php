@@ -9,4 +9,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::put('tasks/{task}/complete', [TaskApiController::class, 'complete'])->name('api.tasks.complete');
+Route::put('tasks/{task}/complete', [TaskApiController::class, 'complete'])
+    ->middleware('auth:sanctum')
+    ->name('api.tasks.complete');

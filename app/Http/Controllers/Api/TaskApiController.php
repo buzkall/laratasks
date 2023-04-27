@@ -10,6 +10,8 @@ class TaskApiController extends Controller
 {
     public function complete(Task $task)
     {
+        $this->authorize('complete', $task);
+
         $task->update(['completed_at' => now()]);
 
         return response()->json([
