@@ -3,40 +3,36 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TaskNotification extends Notification
+class TaskNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(public $task)
+    public function __construct(public $task, public $count = 1)
     {
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->greeting('hey')
-            ->line('Tienes una tarea pendiente con título ' . $this->task->title)
+            ->line(trans_choice('You have :count task pending', $this->count, ['count' => $this->count]))
             ->action('Revísala', route('tasks.edit', $this->task))
             ->line('Gracias!')
             ->salutation('bye');
+    }
+
+    public function toDatabase(object $notifiable)
+    {
+        return ['task_id' => $this->task->id,
+                'count' => $this->count];
     }
 }

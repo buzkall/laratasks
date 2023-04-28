@@ -3,6 +3,7 @@
 use App\Mail\TaskCreated;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\TaskNotification;
 
 beforeEach(function () {
     $this->admin = User::factory()->hasRoles(['name' => 'admin'])->create();
@@ -133,10 +134,10 @@ it('completes a task', function () {
     $this->freezeSecond();
 
     $this->put(route('api.tasks.complete', $task))
-        ->assertOk()
-        ->assertExactJson([
-            'message' => __('Task completed successfully')
-        ]);
+         ->assertOk()
+         ->assertExactJson([
+                               'message' => __('Task completed successfully')
+                           ]);
 
     $task->refresh();
     $this->assertEquals($task->completed_at, now());
@@ -149,4 +150,62 @@ it('sends an email after creating a task', function () {
     Mail::assertSent(TaskCreated::class, function ($mail) {
         return $mail->hasTo('mail@mail.com');
     });
+});
+
+test('command sends notifications of old task to user', function () {
+    Notification::fake();
+    $times = rand(1, 5);
+    Task::factory($times)->for($this->user)->create();
+
+    $this->artisan('laratasks:notify-about-old-tasks')
+         ->assertExitCode(0);
+    Notification::assertCount(0);
+
+    $this->travelTo(now()->addDays(7)->addMinute());
+    $this->artisan('laratasks:notify-about-old-tasks')
+         ->assertExitCode(0);
+    Notification::assertSentTimes(TaskNotification::class, $times);
+
+    Notification::assertSentTo([$this->user], TaskNotification::class);
+});
+
+test('command can group notifications of 1 old task to user', function () {
+    Notification::fake();
+    $times = 1;
+    Task::factory($times)->for($this->user)->create();
+
+    $this->travelTo(now()->addDays(7)->addMinute());
+    $this->artisan('laratasks:notify-about-old-tasks --summary')
+         ->assertExitCode(0);
+    Notification::assertSentTimes(TaskNotification::class, $times);
+
+    Notification::assertSentTo([$this->user], TaskNotification::class,
+        function ($notification, $channels, $notifiable) {
+            $mailData = $notification->toMail($notifiable);
+
+            $this->assertStringContainsString('Tienes 1 tarea pendiente', $mailData->render());
+
+            return true;
+        });
+});
+
+test('command can group notifications of more than one old task to user', function () {
+    Notification::fake();
+    $times = rand(2,5);
+    Task::factory($times)->for($this->user)->create();
+
+    $this->travelTo(now()->addDays(7)->addMinute());
+    $this->artisan('laratasks:notify-about-old-tasks --summary')
+         ->assertExitCode(0);
+
+    Notification::assertSentTimes(TaskNotification::class, 1);
+
+    Notification::assertSentTo([$this->user], TaskNotification::class,
+        function ($notification, $channels, $notifiable) use ($times) {
+            $mailData = $notification->toMail($notifiable);
+
+            $this->assertStringContainsString('Tienes '.$times.' tareas pendientes', $mailData->render());
+
+            return true;
+        });
 });

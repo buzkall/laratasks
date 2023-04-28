@@ -7,18 +7,15 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     */
     protected function schedule(Schedule $schedule): void
     {
         //$schedule->command('inspire')->everyMinute();
-        $schedule->command('laratasks:notify-about-old-tasks')->everyMinute();
+        $schedule->command('laratasks:notify-about-old-tasks')->daily();
+
+        //$schedule->command('model:prune')->daily();
+        $schedule->command('queue:work --stop-when-empty')->everyMinute();
     }
 
-    /**
-     * Register the commands for the application.
-     */
     protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');

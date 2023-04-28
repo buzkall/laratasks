@@ -2,5 +2,6 @@
   "Tasks": "Tareas",
   "Title": "Título",
   "Completed at": "Completado el",
-  "Task with id :id": "Tarea con id :id"
+  "Task with id :id": "Tarea con id :id",
+  "You have :count task pending": "{1}Tienes :count tarea pendiente|[2,*]Tienes :count tareas pendientes"
 }
